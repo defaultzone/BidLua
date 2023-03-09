@@ -32,7 +32,7 @@ private fun replaceKeys(content: String, map : Map<String, String> = names): Str
 
     while (i < content.length) {
         when {
-            // Checking for quotes in string, there may be as " ... " or ' ... ' (for brackets see before).
+            // Checking for quotes in string, there may be as " ... " or ' ... ' (for brackets see below).
             content[i] == '\'' || content[i] == '"' -> {
                 val quote : Char = content[i]
                 result += quote

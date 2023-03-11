@@ -31,7 +31,7 @@ java -jar Output.jar input.blya output.lua [ flags ]
 --charset=value         :: < value > is charset to input, output and map files.
 --map=value             :: < value > is path to your file.map.blya.
 --stop-on-error         :: Stop compiling on get error.
---ignore-default-map  :: Ignore BidLua default map.
+--ignore-default-map    :: Ignore BidLua default map.
 ```
 ***
 ### BidLua поддерживает пользовательские имена

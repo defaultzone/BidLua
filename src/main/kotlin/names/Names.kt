@@ -18,7 +18,7 @@
 
 package names
 
-val names : Map<String, String> = mapOf(
+var names : Map<String, String> = mapOf(
     // Default Lua names.getNames.
     "иче"                   to "and",
     "и"                     to "and",

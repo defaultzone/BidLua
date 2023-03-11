@@ -16,7 +16,9 @@
  * along with this program.  If not, see < https://www.gnu.org/licenses/ >.
  */
 
-import names.* // For names, which represents as Map<String, String>
+import names.*
+import java.io.File
+import java.nio.charset.Charset
 
 /**
  * Replacing key to value (defined in `Names.kt`) for each match.
@@ -26,13 +28,13 @@ import names.* // For names, which represents as Map<String, String>
  * @return String with replaced keys.
  */
 
-private fun replaceKeys(content: String, map : Map<String, String> = names): String {
+private fun replaceKeys(content: String, map : Map<String, String>): String {
     var result : String = ""
     var i : Int = 0
 
     while (i < content.length) {
         when {
-            // Checking for quotes in string, there may be as " ... " or ' ... ' (for brackets see below).
+            // Checking for quotes in string, there may be as " ... " or ' ... ' (for brackets see before).
             content[i] == '\'' || content[i] == '"' -> {
                 val quote : Char = content[i]
                 result += quote
@@ -64,7 +66,7 @@ private fun replaceKeys(content: String, map : Map<String, String> = names): Str
             // If key is not inside of string, change < found key > to < lua name >.
             else -> {
                 var found : Boolean = false
-                for ((key, value) in names) {
+                for ((key, value) in map) {
                     if (content.startsWith(key, i)) {
                         result += value
                         i += key.length
@@ -84,11 +86,85 @@ private fun replaceKeys(content: String, map : Map<String, String> = names): Str
 }
 
 /**
- * In progress, soon this function will be writing lua-file.
- * Now it's for debugging.
- * @param fileContent will be changed for java.io.File.
+ * Changing compiling status. If used flag `--stop-on-error`, compile will be stopped.
+ * Otherwise, compiling will be continued.
  */
 
-fun compile(fileContent : String) : Unit {
-    println(replaceKeys(fileContent))
+private fun compilingStatusChange() {
+    if (Data.flags["--stop-on-error"] == "true") {
+        Data.compiling = false
+        println("Compiling was stopped because \"--stop-on-error\" value is true. To compile anyway, remove this flag.")
+    } else {
+        println("Continue compiling.")
+    }
+}
+
+/**
+ * Creating map from user-defined map-file. File syntax:
+ *      SET key::value;
+ * This will be handled as kotlin default map:
+ *      "key" to "value"
+ * For more information, see /tests/file.map.blya.
+ *
+ * @param filePath Path to user-defined map-file. File extention - .map.blya.
+ * @param charset  Charset of user-defined map-file.
+ * @return MutableMap<String, String>
+ */
+
+private fun createMapFromFile(filePath : String, charset: Charset) : MutableMap<String, String> {
+    var mapToReturn : MutableMap<String, String> = mutableMapOf()
+    val file = File(filePath)
+
+    if (filePath != "null") {
+        if (file.exists()) {
+            val fileContent: String = file.readText(charset)
+            val matches = Regex("SET (.*?)::(.*?);").findAll(fileContent)
+            for (match in matches) {
+                mapToReturn += mutableMapOf(match.groupValues[1] to match.groupValues[2])
+            }
+        } else {
+            println("File $file doesn't exist.")
+            println("Check again the path to the file (file extension should be \".map.blya\"), and if it still turned out to be correct - create issue ...")
+            println("... on ${Data.REPOSITORY_URL}/issues.")
+            mapToReturn["NO_MAP"] = "NO_MAP"
+            compilingStatusChange()
+        }
+    }
+
+    return mapToReturn
+}
+
+/**
+ * Compile .blya file to .lua file.
+ * @param input         java.io.File that need to compile.
+ * @param output        java.io.File that will be output after compiling.
+ * @param charset       Charset of input, output and map file. For all charsets, see `Charset.availableCharsets()`.
+ * @param userMapPath   Path to user-defined map. If you don't need to use BidLua map, enter "null" as string.
+ */
+
+fun compile(input : File, output : File, charset : Charset, userMapPath : String) {
+    if (Data.compiling) {
+        val userMapInitialize: Map<String, String> = createMapFromFile(userMapPath, charset)
+        val userMap: MutableMap<String, String> = mutableMapOf()
+        if (userMapInitialize["NO_MAP"] == null) userMap += userMapInitialize
+
+        if (input.exists()) {
+            val fileContent: String = input.readText(charset)
+            val outputFileContent : String = when (Data.flags["--dont-use-default-map"]) {
+                "true"  -> replaceKeys(fileContent, userMap)
+                else    -> replaceKeys(replaceKeys(fileContent, userMap), names)
+            }
+            if (output.exists()) {
+                output.writeText(outputFileContent, charset)
+                println("Compiled successfully.")
+            } else {
+                output.createNewFile()
+                if (output.exists()) {
+                    output.writeText(outputFileContent, charset)
+                    println("Compiled successfully.")
+                } else
+                    println("Compiler can't create new lua-file. Try again. java.io.File: $input; $output;")
+            }
+        }
+    }
 }

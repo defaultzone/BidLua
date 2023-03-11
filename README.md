@@ -31,7 +31,7 @@ java -jar Output.jar input.blya output.lua [ flags ]
 --charset=value         :: < value > is charset to input, output and map files.
 --map=value             :: < value > is path to your file.map.blya.
 --stop-on-error         :: Stop compiling on get error.
---dont-use-default-map  :: Ignore BidLua default map.
+--ignore-default-map  :: Ignore BidLua default map.
 ```
 ***
 ### BidLua поддерживает пользовательские имена
@@ -49,7 +49,7 @@ SET пока_мир::print("Bye, world!");
 Чтобы скомпилировать Ваш **file.blya** c Вашими именами, выполните компиляцию с флагом `--map=/path/to/your/file.map.blya`
 .
 ***
-### BidLua - свободная программа под GNU General Public License version 3
+### BidLua - свободная программа под GNU General Public License третьей версии
 Это означает, что вы имеете четыре свободы ( которые должны быть у каждого пользователя ):
 
 - свобода применять программу в любых целях,

@@ -22,7 +22,6 @@ end
 ***
 ### Сборка ( .jar архива ) и компиляция ( .blya файла )
 ```shell
-gradle init
 cd /src/main/kotlin/
 kotlinc * -include-runtime -d Output.jar
 java -jar Output.jar input.blya output.lua [ flags ]

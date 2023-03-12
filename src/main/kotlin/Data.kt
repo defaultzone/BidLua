@@ -1,6 +1,6 @@
 /**
  * BidLua - compiled language for Lua.
- * Copyright (C) 2023 defaultzon3 (also known as DZONE)
+ * Copyright (C) 2023 defaultzon3
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,6 @@ object Data {
         "--charset" to "UTF-8",
         "--map" to "null",
         "--stop-on-error" to "false",
-        "--dont-use-default-map" to "false"
+        "--ignore-default-map" to "false"
     )
 }

@@ -1,6 +1,6 @@
 /**
  * BidLua - compiled language for Lua.
- * Copyright (C) 2023 defaultzon3 (also known as DZONE)
+ * Copyright (C) 2023 defaultzon3
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,72 +21,87 @@ import java.io.File
 import java.nio.charset.Charset
 
 /**
- * Replacing key to value (defined in `Names.kt`) for each match.
- * Does not react to < single || double > quotes and < "[[ ... ]]" || "[=[ ... ]=]" > brackets.
- * @param content String, which need to replace by found `key` to `value`.
- * @param map Map, where replacing `key` to `value`. By default, it's `names.getNames <String, String>`. Accepts string as key and string as value.
- * @return String with replaced keys.
+ * Replacing key/value to value/key (defined in `Names.kt`) for each match.
+ * Does not react to key/value inside:
+ *      < single || double > quotes,
+ *      < "[[" to "]]" and "[=[" to "]=]" > brackets,
+ *      < -- > single line commentary,
+ *      < "--[[" to "]]" and "--[-[" to "]=]" > multi line commentary.
+ * @param input String, which need to replace by found `key/value` to `value/key`.
+ * @param map Map, where replacing `key/value` to `value/key`.
+ * @return String with replaced key(s)/value(s).
  */
 
-private fun replaceKeys(content: String, map : Map<String, String>): String {
-    var result : String = ""
-    var i : Int = 0
+fun replaceKeys(input : String, map : Map<String, String>, fileExtension : String) : String {
+    val output : StringBuilder = StringBuilder()
+    val n = input.length
+    var i = 0
 
-    while (i < content.length) {
+    while (i < n) {
         when {
-            // Checking for quotes in string, there may be as " ... " or ' ... ' (for brackets see before).
-            content[i] == '\'' || content[i] == '"' -> {
-                val quote : Char = content[i]
-                result += quote
-                i++
-                while (i < content.length && content[i] != quote) {
-                    result += content[i]
-                    i++
-                }
-                if (i < content.length && content[i] == quote) {
-                    result += quote
-                    i++
-                }
+            input.startsWith("[[", i) -> { // Skip until closing brackets.
+                val j = input.indexOf("]]", i + 2).takeIf { it >= 0 } ?: n
+                output.append(input, i, j + 2)
+                i = j + 2
             }
-            // Checking for brackets in string, there may be as [[ ... ]] or [=[ ... ]=]
-            content.startsWith("[[", i) || content.startsWith("[=[", i) -> {
-                val start : String = content.substring(i, i + 2)
-                val end : String = if (start == "[[") "]]" else "]=]"
-                result += start
-                i += 2
-                while (i < content.length && !content.startsWith(end, i)) {
-                    result += content[i]
-                    i++
-                }
-                if (i < content.length && content.startsWith(end, i)) {
-                    result += end
-                    i += end.length
-                }
+            input.startsWith("[=[", i) -> { // Skip until closing brackets.
+                val j = input.indexOf("]=]", i + 2).takeIf { it >= 0 } ?: n
+                output.append(input, i, j + 3)
+                i = j + 3
             }
-            // If key is not inside of string, change < found key > to < lua name >.
-            else -> {
-                var found : Boolean = false
+            input.startsWith("—[[", i) -> { // Skip until closing brackets.
+                val j = input.indexOf("]]", i + 2).takeIf { it >= 0 } ?: n
+                output.append(input, i, j + 2)
+                i = j + 2
+            }
+            input.startsWith("—[=[", i) -> { // Skip until closing brackets.
+                val j = input.indexOf("]=]", i + 2).takeIf { it >= 0 } ?: n
+                output.append(input, i, j + 3)
+                i = j + 3
+            }
+            input.startsWith("--", i) -> { // Skip until end of line.
+                val j = input.indexOf('\n', i + 2).takeIf { it >= 0 } ?: n
+                output.append(input, i, j)
+                i = j
+            }
+            input.startsWith("\"", i) -> { // Skip until closing quote.
+                val j = input.indexOf('"', i + 1).takeIf { it >= 0 } ?: n
+                output.append(input, i, j + 1)
+                i = j + 1
+            }
+            input.startsWith("'", i) -> { // Skip until closing quote.
+                val j = input.indexOf('\'', i + 1).takeIf { it >= 0 } ?: n
+                output.append(input, i, j + 1)
+                i = j + 1
+            }
+            else -> { // Try to match a key from the map
+                var found = false
                 for ((key, value) in map) {
-                    if (content.startsWith(key, i)) {
-                        result += value
-                        i += key.length
+                    val (safeKey, safeValue) = when (fileExtension) {
+                        "blya"  -> Pair(key, value)
+                        else    -> Pair(value, key)
+                    }
+
+                    if (input.startsWith(safeKey, i)) {
+                        output.append(safeValue)
+                        i += safeKey.length
                         found = true
                         break
                     }
                 }
                 if (!found) {
-                    result += content[i]
+                    output.append(input[i])
                     i++
                 }
             }
         }
     }
 
-    return result
+    return output.toString()
 }
 
 /**
- * Changing compiling status. If used flag `--stop-on-error`, compile will be stopped.
+ * Changing compiling status. If used flag `--stop-on-error`, compiling will be stopped.
  * Otherwise, compiling will be continued.
  */
 
@@ -106,13 +121,13 @@ private fun compilingStatusChange() {
  *      "key" to "value"
  * For more information, see /tests/file.map.blya.
  *
- * @param filePath Path to user-defined map-file. File extention - .map.blya.
+ * @param filePath Path to user-defined map-file. File extension - .map.blya.
  * @param charset  Charset of user-defined map-file.
  * @return MutableMap<String, String>
  */
 
 private fun createMapFromFile(filePath : String, charset: Charset) : MutableMap<String, String> {
-    var mapToReturn : MutableMap<String, String> = mutableMapOf()
+    val mapToReturn : MutableMap<String, String> = mutableMapOf()
     val file = File(filePath)
 
     if (filePath != "null") {
@@ -135,7 +150,7 @@ private fun createMapFromFile(filePath : String, charset: Charset) : MutableMap<
 }
 
 /**
- * Compile .blya file to .lua file.
+ * Compile .blya file to .lua file and vice versa.
  * @param input         java.io.File that need to compile.
  * @param output        java.io.File that will be output after compiling.
  * @param charset       Charset of input, output and map file. For all charsets, see `Charset.availableCharsets()`.
@@ -144,15 +159,19 @@ private fun createMapFromFile(filePath : String, charset: Charset) : MutableMap<
 
 fun compile(input : File, output : File, charset : Charset, userMapPath : String) {
     if (Data.compiling) {
-        val userMapInitialize: Map<String, String> = createMapFromFile(userMapPath, charset)
-        val userMap: MutableMap<String, String> = mutableMapOf()
+        val userMapInitialize : Map<String, String> = createMapFromFile(userMapPath, charset)
+        var userMap : MutableMap<String, String> = mutableMapOf()
         if (userMapInitialize["NO_MAP"] == null) userMap += userMapInitialize
 
+        // Sorting maps by key descending ( key.length ).
+        userMap = userMap.toList().sortedByDescending { it.first.length }.toMap() as MutableMap<String, String>
+        names   = names.toList().sortedByDescending { it.first.length }.toMap()
+
         if (input.exists()) {
-            val fileContent: String = input.readText(charset)
-            val outputFileContent : String = when (Data.flags["--dont-use-default-map"]) {
-                "true"  -> replaceKeys(fileContent, userMap)
-                else    -> replaceKeys(replaceKeys(fileContent, userMap), names)
+            var fileContent : String = input.readText(charset)
+            val outputFileContent : String = when (Data.flags["--ignore-default-map"]) {
+                "true"  -> replaceKeys(fileContent, userMap, input.extension)
+                else    -> replaceKeys(replaceKeys(fileContent, userMap, input.extension), names, input.extension)
             }
             if (output.exists()) {
                 output.writeText(outputFileContent, charset)

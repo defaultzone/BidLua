@@ -1,6 +1,6 @@
 /**
  * BidLua - compiled language for Lua.
- * Copyright (C) 2023 defaultzon3 (also known as DZONE)
+ * Copyright (C) 2023 defaultzon3
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  */
 
 import Data.flags
+import Data.inputFileExtension
 import java.io.File
 import java.nio.charset.Charset
 
@@ -31,7 +32,7 @@ import java.nio.charset.Charset
  *          --map                < file with map >
  *      That not accepts value (--flag):
  *          --stop-on-error
- *          --dont-use-default-map
+ *          --ignore-default-map
  * @param args ( arguments ) Array of string, where stores program arguments.
  */
 
@@ -48,42 +49,51 @@ fun main(args : Array<String>) {
         }
     }
 
-    if (args[0] == "-h" || args[0] == "--help") {
-        val content : String = """
-            BidLua ( ${Data.VERSION} ) compiler to Lua usage:
-                java -jar < path to .jar file > < input || -h || --help > < output > [ flags ]
-            Flags:
-                --charset=value         :: < value > is charset to input, output and map files.
-                --map=value             :: < value > is path to your file.map.blya.
-                --stop-on-error         :: Stop compiling on get error.
-                --dont-use-default-map  :: Ignore BidLua default map.
-            BidLua Copyright (C) 2023 defaultzon3 (also known as DZONE)
-                This program comes with ABSOLUTELY NO WARRANTY;
-                This program is free software: you can redistribute it and/or modify
-                it under the terms of the GNU General Public License as published by
-                the Free Software Foundation, either version 3 of the License, or
-                (at your option) any later version.
-            Source code: https://github.com/defaultzon3/BidLua/
-        """.trimIndent()
-        println(content)
+    val helpContent : String = """
+        BidLua ( ${Data.VERSION} ) compiler to Lua usage:
+            java -jar < path to .jar file > < input || -h || --help > < output > [ flags ]
+        Flags:
+            --charset=value         :: < value > is charset to input, output and map files.
+            --map=value             :: < value > is path to your file.map.blya.
+            --stop-on-error         :: Stop compiling on get error.
+            --ignore-default-map    :: Ignore BidLua default map.
+        BidLua Copyright (C) 2023 defaultzon3 (also known as DZONE)
+            This program comes with ABSOLUTELY NO WARRANTY;
+            This program is free software: you can redistribute it and/or modify
+            it under the terms of the GNU General Public License as published by
+            the Free Software Foundation, either version 3 of the License, or
+            (at your option) any later version.
+        Source code: https://github.com/defaultzon3/BidLua/
+    """.trimIndent()
+
+    if (args.isEmpty()) {
+        println(helpContent)
     } else {
-        if (Charset.availableCharsets()[flags["--charset"]] != null) {
-            if (File(args[0]).exists()) {
-                Data.compiling = true
-                compile(
-                    File(args[0]),
-                    File(args[1]),
-                    Charset.availableCharsets()[flags["--charset"]]!!,
-                    flags["--map"]!!
-                )
-            } else {
-                println("File in < input > doesn't exist.")
-                println("Check again the path to the file (file extension should be \".blya\"), and if it still turned out to be correct - create issue ...")
-                println("... on ${Data.REPOSITORY_URL}/issues.")
-                println("< input > path: ${args[0]}; < output > path: ${args[1]}")
-            }
+        if (args[0] == "-h" || args[0] == "--help") {
+            println(helpContent)
         } else {
-            println("Unknown charset: ${flags["--charset"]}")
+            if (Charset.availableCharsets()[flags["--charset"]] != null) {
+                val inputExtension : String = File(args[0]).extension
+                val outputExtension : String = File(args[1]).extension
+                val acceptableExtensions : List<String> = listOf("blya", "lua")
+                if (File(args[0]).exists() && inputExtension in acceptableExtensions && outputExtension in acceptableExtensions) {
+                    Data.compiling = true
+                    compile (
+                        File(args[0]),
+                        File(args[1]),
+                        Charset.availableCharsets()[flags["--charset"]]!!,
+                        flags["--map"]!!
+                    )
+                } else {
+                    println("File in < input > doesn't exist.")
+                    println("Input and output extension must be \".blya\" or \".lua\".")
+                    println("Check again the path to the file, and if it still turned out to be correct - create issue ...")
+                    println("... on ${Data.REPOSITORY_URL}/issues.")
+                    println("< input > path: ${args[0]}; < output > path: ${args[1]}")
+                }
+            } else {
+                println("Unknown charset: ${flags["--charset"]}")
+            }
         }
     }
 }

@@ -17,7 +17,6 @@
  */
 
 import Data.flags
-import Data.inputFileExtension
 import java.io.File
 import java.nio.charset.Charset
 

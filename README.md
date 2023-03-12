@@ -1,11 +1,13 @@
 ### BidLua - компилируемый в Lua язык программирования c сотнью именами и функций для "четких" парней.
 ***
-**Пример:** Этот `.blya` файл, со следующим содержимым ...
+## BidLua в действии
+Этот `.blya` файл, со следующим содержимым ...
 ```
 вася
     петух kto будет "курьером"
     длялоха i жыесть 1, 5 паши
-        print(kto)
+        i будет i барашик 2
+        хуйжопа(("чмо номер %s называемый %s"):гыыформат(i, kto))
     буээ 
 чмо
 ```
@@ -14,17 +16,22 @@
 do
     local kto = "курьером"
     for i = 1, 5 do
-        print(kto)
+        i = i + 2
+        print(("чмо номер %s называемый %s"):format(i, kto))
     end
-end 
+end
 ```
 
+В **BidLua** больше сотни имен для 27 имен **Lua** по умолчанию. Посмотреть их всех можно в [файле имен](https://github.com/defaultzon3/BidLua/blob/main/src/main/kotlin/names/Names.kt).
+
 ***
-### Сборка ( .jar архива ) и компиляция ( .blya файла )
+### Сборка ( .jar архива ) и(или) компиляция ( .blya файла )
 ```shell
+# Сборка
 cd /src/main/kotlin/
-kotlinc * -include-runtime -d Output.jar
-java -jar Output.jar input.blya output.lua [ flags ]
+kotlinc * -include-runtime -d BidLua-0.1-PREVIEW.jar
+# Компиляция
+java -jar BidLua-0.1-PREVIEW.jar input.blya output.lua [ flags ]
 ```
 **Доступные флаги:**
 ```shell

@@ -30,9 +30,9 @@ end
 ```shell
 # Сборка
 cd /src/main/kotlin/
-kotlinc * -include-runtime -d BidLua-0.1-PREVIEW.jar
+kotlinc * -include-runtime -d BidLua-1.0-SNAPSHOT.jar
 # Компиляция
-java -jar BidLua-0.1-PREVIEW.jar input.blya output.lua [ flags ]
+java -jar BidLua-1.0-SNAPSHOT.jar input.blya output.lua [ flags ]
 ```
 **Доступные флаги:**
 ```shell

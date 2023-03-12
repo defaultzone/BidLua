@@ -22,7 +22,7 @@ do
 end
 ```
 
-В **BidLua** больше сотни имен для 27 имен **Lua** по умолчанию. Посмотреть их всех можно в [файле имен](https://github.com/defaultzon3/BidLua/blob/main/src/main/kotlin/names/Names.kt).
+В **BidLua** больше сотни имен для 27 имен **Lua** по умолчанию. Посмотреть их всех можно в [файле имен/функций.](https://github.com/defaultzon3/BidLua/blob/main/src/main/kotlin/names/Names.kt).
 
 ***
 ### Сборка ( .jar архива ) и(или) компиляция ( .blya файла )

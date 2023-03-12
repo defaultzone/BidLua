@@ -302,6 +302,8 @@ var names : Map<String, String> = mapOf(
     "верти"                 to "insert",
     "верха"                 to "insert",
     "весло"                 to "insert",
+    "обьединяло"            to "concat",
+    "кокатбля"              to "concat",
     "пиздуй"                to "move",
     "псевдовалежник"        to "pack",
     "сортировщик"           to "sort",

@@ -19,6 +19,7 @@
 import names.*
 import java.io.File
 import java.nio.charset.Charset
+import javax.print.DocFlavor.STRING
 
 /**
  * Replacing key/value to value/key (defined in `Names.kt`) for each match.
@@ -33,45 +34,92 @@ import java.nio.charset.Charset
  */
 
 fun replaceKeys(input : String, map : Map<String, String>, fileExtension : String) : String {
+    // Compiler function: базар(content). Replaces cyrillic symbols to latin.
+    // On usage should return pure latin string.
+    var safeInput : String = input.replace(Regex("базар\\(([^)]*)\\)")) {
+        val symbols : List<String> = it.groupValues[1].split("")
+        var result = ""
+        for (symbol in symbols) {
+            result += when (symbol) {
+                "а" -> "a"
+                "б" -> "b"
+                "в" -> "v"
+                "г" -> "g"
+                "д" -> "d"
+                "е" -> "e"
+                "ё" -> "e"
+                "ж" -> "zh"
+                "з" -> "z"
+                "и" -> "i"
+                "й" -> "y"
+                "к" -> "k"
+                "л" -> "k"
+                "м" -> "m"
+                "н" -> "n"
+                "о" -> "o"
+                "п" -> "p"
+                "р" -> "r"
+                "с" -> "s"
+                "т" -> "t"
+                "у" -> "u"
+                "ф" -> "f"
+                "х" -> "h"
+                "ц" -> "tc"
+                "ч" -> "ch"
+                "ш" -> "sh"
+                "щ" -> "shch"
+                "ъ" -> "'"
+                "ы" -> "i"
+                "ь" -> "'"
+                "э" -> "e"
+                "ю" -> "yu"
+                "я" -> "ya"
+                else -> symbol
+            }
+        }
+        println(result)
+        result
+    }
+
     val output : StringBuilder = StringBuilder()
-    val n = input.length
+    val n = safeInput.length
     var i = 0
 
     while (i < n) {
         when {
-            input.startsWith("[[", i) -> { // Skip until closing brackets.
-                val j = input.indexOf("]]", i + 2).takeIf { it >= 0 } ?: n
-                output.append(input, i, j + 2)
+            safeInput.startsWith("[[", i) -> { // Skip until closing brackets.
+                val j = safeInput.indexOf("]]", i + 2).takeIf { it >= 0 } ?: n
+                output.append(safeInput, i, j + 2)
                 i = j + 2
             }
-            input.startsWith("[=[", i) -> { // Skip until closing brackets.
-                val j = input.indexOf("]=]", i + 2).takeIf { it >= 0 } ?: n
-                output.append(input, i, j + 3)
+            safeInput.startsWith("[=[", i) -> { // Skip until closing brackets.
+                val j = safeInput.indexOf("]=]", i + 2).takeIf { it >= 0 } ?: n
+                output.append(safeInput, i, j + 3)
                 i = j + 3
             }
-            input.startsWith("—[[", i) -> { // Skip until closing brackets.
-                val j = input.indexOf("]]", i + 2).takeIf { it >= 0 } ?: n
-                output.append(input, i, j + 2)
+            safeInput.startsWith("—[[", i) -> { // Skip until closing brackets.
+                val j = safeInput.indexOf("]]", i + 2).takeIf { it >= 0 } ?: n
+                output.append(safeInput, i, j + 2)
                 i = j + 2
             }
-            input.startsWith("—[=[", i) -> { // Skip until closing brackets.
-                val j = input.indexOf("]=]", i + 2).takeIf { it >= 0 } ?: n
-                output.append(input, i, j + 3)
+            safeInput.startsWith("—[=[", i) -> { // Skip until closing brackets.
+                val j = safeInput.indexOf("]=]", i + 2).takeIf { it >= 0 } ?: n
+                output.append(safeInput, i, j + 3)
                 i = j + 3
             }
-            input.startsWith("--", i) -> { // Skip until end of line.
-                val j = input.indexOf('\n', i + 2).takeIf { it >= 0 } ?: n
-                output.append(input, i, j)
+            safeInput.startsWith("--", i) -> { // Skip until end of line.
+                val j = safeInput.indexOf('\n', i + 2).takeIf { it >= 0 } ?: n
+                output.append(safeInput, i, j)
                 i = j
             }
-            input.startsWith("\"", i) -> { // Skip until closing quote.
-                val j = input.indexOf('"', i + 1).takeIf { it >= 0 } ?: n
-                output.append(input, i, j + 1)
+            safeInput.startsWith("\"", i) -> { // Skip until closing quote.
+                val j = safeInput.indexOf('"', i + 1).takeIf { it >= 0 } ?: n
+                output.append(safeInput, i, j + 1)
                 i = j + 1
             }
-            input.startsWith("'", i) -> { // Skip until closing quote.
-                val j = input.indexOf('\'', i + 1).takeIf { it >= 0 } ?: n
-                output.append(input, i, j + 1)
+            safeInput.startsWith("'", i) -> { // Skip until closing quote.
+                val j = safeInput.indexOf('\'', i + 1).takeIf { it >= 0 } ?: n
+                output.append(safeInput, i, j + 1)
                 i = j + 1
             }
             else -> { // Try to match a key from the map
@@ -82,7 +130,7 @@ fun replaceKeys(input : String, map : Map<String, String>, fileExtension : Strin
                         else    -> Pair(value, key)
                     }
 
-                    if (input.startsWith(safeKey, i)) {
+                    if (safeInput.startsWith(safeKey, i)) {
                         output.append(safeValue)
                         i += safeKey.length
                         found = true
@@ -90,7 +138,7 @@ fun replaceKeys(input : String, map : Map<String, String>, fileExtension : Strin
                     }
                 }
                 if (!found) {
-                    output.append(input[i])
+                    output.append(safeInput[i])
                     i++
                 }
             }
@@ -182,7 +230,7 @@ fun compile(input : File, output : File, charset : Charset, userMapPath : String
                     output.writeText(outputFileContent, charset)
                     println("Compiled successfully.")
                 } else
-                    println("Compiler can't create new lua-file. Try again. java.io.File: $input; $output;")
+                    println("Compiler can't create new lua-file. Try again. || ${input.path} || ${output.path}")
             }
         }
     }

@@ -17,7 +17,7 @@
  */
 
 object Data {
-    const val VERSION : String = "0.1-PREVIEW"
+    const val VERSION : String = "1.1-SNAPSHOT"
     const val REPOSITORY_URL : String = "https://github.com/defaultzon3/BidLua"
     var compiling : Boolean = false
     var flags : MutableMap<String, String> = mutableMapOf(

@@ -40,9 +40,9 @@ fun main(args : Array<String>) {
         for ((key, _) in flags) {
             val splitFlag : List<String> = args[i].split("=")
             if (key == splitFlag[0]) {
-                when (splitFlag.size) {
-                    1 -> { flags[key] = "true" }
-                    2 -> { flags[key] = splitFlag[1] }
+                flags[key] = when (splitFlag.size) {
+                    2       -> splitFlag[1]
+                    else    -> "true"
                 }
             }
         }
@@ -65,6 +65,12 @@ fun main(args : Array<String>) {
         Source code: https://github.com/defaultzon3/BidLua/
     """.trimIndent()
 
+    val inputFileError : String = """
+        File in < input > doesn't exist. Input and output extension must be .blya or .lua.
+        Check again the path to the file, and if it still turned out to be correct:
+        Create issue on ${Data.REPOSITORY_URL}/issues. Input path: ${args[0]}; Output path: ${args[1]};
+    """.trimIndent()
+
     if (args.isEmpty()) {
         println(helpContent)
     } else {
@@ -84,11 +90,7 @@ fun main(args : Array<String>) {
                         flags["--map"]!!
                     )
                 } else {
-                    println("File in < input > doesn't exist.")
-                    println("Input and output extension must be \".blya\" or \".lua\".")
-                    println("Check again the path to the file, and if it still turned out to be correct - create issue ...")
-                    println("... on ${Data.REPOSITORY_URL}/issues.")
-                    println("< input > path: ${args[0]}; < output > path: ${args[1]}")
+                    println(inputFileError)
                 }
             } else {
                 println("Unknown charset: ${flags["--charset"]}")

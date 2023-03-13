@@ -5,7 +5,7 @@
 Этот `.blya` файл, со следующим содержимым ...
 ```
 вася
-    петух kto будет "курьером"
+    петух базар(ванёк) будет "курьером"
     длялоха i жыесть 1, 5 паши
         i будет i барашик 2
         хуйжопа(("чмо номер %s называемый %s"):гыыформат(i, kto))
@@ -15,7 +15,7 @@
 ... скомпилируется в `.lua` файл:
 ```lua
 do
-    local kto = "курьером"
+    local vanek = "курьером"
     for i = 1, 5 do
         i = i + 2
         print(("чмо номер %s называемый %s"):format(i, kto))
@@ -30,9 +30,9 @@ end
 ```shell
 # Сборка
 cd /src/main/kotlin/
-kotlinc * -include-runtime -d BidLua-1.0-SNAPSHOT.jar
+kotlinc * -include-runtime -d BidLua-1.1-SNAPSHOT.jar
 # Компиляция
-java -jar BidLua-1.0-SNAPSHOT.jar input.blya output.lua [ flags ]
+java -jar BidLua-1.1-SNAPSHOT.jar input.blya output.lua [ flags ]
 ```
 **Доступные флаги:**
 ```shell

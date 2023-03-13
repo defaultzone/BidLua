@@ -65,15 +65,15 @@ fun main(args : Array<String>) {
         Source code: https://github.com/defaultzon3/BidLua/
     """.trimIndent()
 
-    val inputFileError : String = """
-        File in < input > doesn't exist. Input and output extension must be .blya or .lua.
-        Check again the path to the file, and if it still turned out to be correct:
-        Create issue on ${Data.REPOSITORY_URL}/issues. Input path: ${args[0]}; Output path: ${args[1]};
-    """.trimIndent()
-
     if (args.isEmpty()) {
         println(helpContent)
     } else {
+        val inputFileError : String = """
+            File in < input > doesn't exist. Input and output extension must be .blya or .lua.
+            Check again the path to the file, and if it still turned out to be correct:
+            Create issue on ${Data.REPOSITORY_URL}/issues. Input path: ${args[0]}; Output path: ${args[1]};
+        """.trimIndent()
+
         if (args[0] == "-h" || args[0] == "--help") {
             println(helpContent)
         } else {

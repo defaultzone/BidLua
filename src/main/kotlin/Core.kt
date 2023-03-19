@@ -19,6 +19,7 @@
 import names.*
 import java.io.File
 import java.nio.charset.Charset
+import java.util.*
 import javax.print.DocFlavor.STRING
 
 /**
@@ -37,7 +38,7 @@ fun replaceKeys(input : String, map : Map<String, String>, fileExtension : Strin
     // Compiler function: базар(content). Replaces cyrillic symbols to latin.
     // On usage should return pure latin string.
     var safeInput : String = input.replace(Regex("базар\\(([^)]*)\\)")) {
-        val symbols : List<String> = it.groupValues[1].split("")
+        val symbols : List<String> = it.groupValues[1].lowercase().split("")
         var result = ""
         for (symbol in symbols) {
             result += when (symbol) {
@@ -53,7 +54,7 @@ fun replaceKeys(input : String, map : Map<String, String>, fileExtension : Strin
                 "и" -> "i"
                 "й" -> "y"
                 "к" -> "k"
-                "л" -> "k"
+                "л" -> "l"
                 "м" -> "m"
                 "н" -> "n"
                 "о" -> "o"
@@ -77,7 +78,6 @@ fun replaceKeys(input : String, map : Map<String, String>, fileExtension : Strin
                 else -> symbol
             }
         }
-        println(result)
         result
     }
 
@@ -164,26 +164,30 @@ private fun compilingStatusChange() {
 
 /**
  * Creating map from user-defined map-file. File syntax:
- *      SET key::value;
+ *      ADD key::value;
  * This will be handled as kotlin default map:
  *      "key" to "value"
  * For more information, see /tests/file.map.blya.
  *
+ * v1.1.1: Allows to create map from main file.
+ *
  * @param filePath Path to user-defined map-file. File extension - .map.blya.
+ * @param fileContent File content, where need create map.
  * @param charset  Charset of user-defined map-file.
  * @return MutableMap<String, String>
  */
 
-private fun createMapFromFile(filePath : String, charset: Charset) : MutableMap<String, String> {
+private fun createProjectMap(filePath : String, fileContent : String, charset: Charset) : Pair<MutableMap<String, String>, String> {
     val mapToReturn : MutableMap<String, String> = mutableMapOf()
     val file = File(filePath)
+    var safeFileContent = ""
 
+    // Creating map from `.map.blya` file.
     if (filePath != "null") {
         if (file.exists()) {
-            val fileContent: String = file.readText(charset)
-            val matches = Regex("SET (.*?)::(.*?);").findAll(fileContent)
-            for (match in matches) {
-                mapToReturn += mutableMapOf(match.groupValues[1] to match.groupValues[2])
+            val mapFileContent: String = file.readText(charset)
+            Regex("ADD (.*?)::(.*?);").findAll(mapFileContent).forEach {
+                mapToReturn += mutableMapOf(it.groupValues[1] to it.groupValues[2])
             }
         } else {
             println("File $file doesn't exist.")
@@ -194,7 +198,13 @@ private fun createMapFromFile(filePath : String, charset: Charset) : MutableMap<
         }
     }
 
-    return mapToReturn
+    // Creating map from `.blya` file.
+    Regex("#add (.*?)::(.*?);").findAll(fileContent).forEach {
+        mapToReturn += mutableMapOf(it.groupValues[1] to it.groupValues[2])
+        safeFileContent = fileContent.replace(it.value, "")
+    }
+
+    return Pair(mapToReturn, safeFileContent)
 }
 
 /**
@@ -207,19 +217,22 @@ private fun createMapFromFile(filePath : String, charset: Charset) : MutableMap<
 
 fun compile(input : File, output : File, charset : Charset, userMapPath : String) {
     if (Data.compiling) {
-        val userMapInitialize : Map<String, String> = createMapFromFile(userMapPath, charset)
+        var (userMapInitialize, fileContent) = createProjectMap(userMapPath, input.readText(charset), charset)
         var userMap : MutableMap<String, String> = mutableMapOf()
         if (userMapInitialize["NO_MAP"] == null) userMap += userMapInitialize
 
         // Sorting maps by key descending ( key.length ).
-        userMap = userMap.toList().sortedByDescending { it.first.length }.toMap() as MutableMap<String, String>
-        names   = names.toList().sortedByDescending { it.first.length }.toMap()
+        if (userMap::class.simpleName != "LinkedHashMap")
+            userMap = userMap.toList().sortedByDescending { it.first.length }.toMap() as MutableMap<String, String>
+        names = names.toList().sortedByDescending { it.first.length }.toMap()
 
         if (input.exists()) {
-            var fileContent : String = input.readText(charset)
             val outputFileContent : String = when (Data.flags["--ignore-default-map"]) {
                 "true"  -> replaceKeys(fileContent, userMap, input.extension)
-                else    -> replaceKeys(replaceKeys(fileContent, userMap, input.extension), names, input.extension)
+                else    -> {
+                    fileContent = replaceKeys(fileContent, userMap, input.extension)
+                    replaceKeys(fileContent, names, input.extension)
+                }
             }
             if (output.exists()) {
                 output.writeText(outputFileContent, charset)

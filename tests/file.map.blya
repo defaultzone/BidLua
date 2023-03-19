@@ -1,11 +1,11 @@
 Map file: setting up our < key > to compile it in < value >.
     This file have only one function: "SET" which accepts key::value as argument.
     Example:
-        SЕT key::value; ( and we can use "key" in file, which defined in < input > argument. ...
+        SГ…T key::value; ( and we can use "key" in file, which defined in < input > argument. ...
             ... This "key" will be compiled in "value". )
     There's no "commentary" function / character(s). All that you writing is commentary, excepts "SET" function.
 Below you can see usage of "SET" function.
 
-SET ахах::end;
-SET выведи::print;
-SET охох::end;
+ADD Г ГµГ Гµ::end;
+ADD ГўГ»ГўГҐГ¤ГЁ::print;
+ADD Г®ГµГ®Гµ::end;

@@ -20,7 +20,6 @@ import names.*
 import java.io.File
 import java.nio.charset.Charset
 import java.util.*
-import javax.print.DocFlavor.STRING
 
 /**
  * Replacing key/value to value/key (defined in `Names.kt`) for each match.
@@ -86,7 +85,7 @@ fun replaceKeys(input : String, map : Map<String, String>, fileExtension : Strin
     var i = 0
 
     while (i < n) {
-        when {
+        when { // TODO: eto pizdec, peredelat'
             safeInput.startsWith("[[", i) -> { // Skip until closing brackets.
                 val j = safeInput.indexOf("]]", i + 2).takeIf { it >= 0 } ?: n
                 output.append(safeInput, i, j + 2)
@@ -156,9 +155,7 @@ fun replaceKeys(input : String, map : Map<String, String>, fileExtension : Strin
 private fun compilingStatusChange() {
     if (Data.flags["--stop-on-error"] == "true") {
         Data.compiling = false
-        println("Compiling was stopped because \"--stop-on-error\" value is true. To compile anyway, remove this flag.")
-    } else {
-        println("Continue compiling.")
+        println("${Colors.BOLD + Colors.RED}COMPILATION STOPPED")
     }
 }
 
@@ -190,9 +187,13 @@ private fun createProjectMap(filePath : String, fileContent : String, charset: C
                 mapToReturn += mutableMapOf(it.groupValues[1] to it.groupValues[2])
             }
         } else {
-            println("File $file doesn't exist.")
-            println("Check again the path to the file (file extension should be \".map.blya\"), and if it still turned out to be correct - create issue ...")
-            println("... on ${Data.REPOSITORY_URL}/issues.")
+            println("""
+                ${Colors.BOLD + Colors.RED}> ERROR 
+                ${Colors.RESET + Colors.BOLD}  File ${Colors.CYAN}$file${Colors.RESET + Colors.BOLD} doesn't exist.
+                ${Colors.RESET + Colors.BOLD}  Check again the path to the file, and if it still turned out to be correct - create issue on ${
+                    Colors.CYAN + Colors.UNDERLINE + Data.REPOSITORY_URL + Colors.RESET
+                }
+            """.trimIndent())
             mapToReturn["NO_MAP"] = "NO_MAP"
             compilingStatusChange()
         }
@@ -216,13 +217,13 @@ private fun createProjectMap(filePath : String, fileContent : String, charset: C
  */
 
 fun compile(input : File, output : File, charset : Charset, userMapPath : String) {
-    if (Data.compiling) {
+    while (Data.compiling) {
         var (userMapInitialize, fileContent) = createProjectMap(userMapPath, input.readText(charset), charset)
         var userMap : MutableMap<String, String> = mutableMapOf()
         if (userMapInitialize["NO_MAP"] == null) userMap += userMapInitialize
 
         // Sorting maps by key descending ( key.length ).
-        if (userMap::class.simpleName != "LinkedHashMap")
+        if (userMap !is LinkedHashMap)
             userMap = userMap.toList().sortedByDescending { it.first.length }.toMap() as MutableMap<String, String>
         names = names.toList().sortedByDescending { it.first.length }.toMap()
 
@@ -236,14 +237,23 @@ fun compile(input : File, output : File, charset : Charset, userMapPath : String
             }
             if (output.exists()) {
                 output.writeText(outputFileContent, charset)
-                println("Compiled successfully.")
+                println("${Colors.BOLD + Colors.GREEN}\nSUCCESSFUL COMPILATION")
             } else {
                 output.createNewFile()
                 if (output.exists()) {
                     output.writeText(outputFileContent, charset)
-                    println("Compiled successfully.")
+                    println("${Colors.BOLD + Colors.GREEN}\nSUCCESSFUL COMPILATION")
                 } else
-                    println("Compiler can't create new lua-file. Try again. || ${input.path} || ${output.path}")
+                    println("""
+                        ${Colors.BOLD + Colors.RED}> ERROR
+                          ${Colors.RESET + Colors.BOLD}The compiler could not create the Lua file, please try again.
+                        ${Colors.RESET + Colors.BOLD}> INPUT PATH
+                          ${input.path}
+                        > OUTPUT PATH
+                          ${output.path}
+                          
+                        ${Colors.BOLD + Colors.RED}COMPILATION STOPPED
+                    """.trimIndent())
             }
         }
     }

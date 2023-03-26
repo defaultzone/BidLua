@@ -49,34 +49,40 @@ fun main(args : Array<String>) {
     }
 
     val helpContent : String = """
-        BidLua ( ${Data.VERSION} ) compiler to Lua usage:
-            java -jar < path to .jar file > < input || -h || --help > < output > [ flags ]
-        Flags:
-            --charset=value         :: < value > is charset to input, output and map files.
-            --map=value             :: < value > is path to your file.map.blya.
-            --stop-on-error         :: Stop compiling on get error.
-            --ignore-default-map    :: Ignore BidLua default map.
-        BidLua Copyright (C) 2023 defaultzon3 (also known as DZONE)
-            This program comes with ABSOLUTELY NO WARRANTY;
+        ${Colors.BOLD}> BidLua ${Colors.YELLOW}( ${Data.VERSION} )${Colors.RESET + Colors.BOLD} compiler to Lua usage
+            ${Colors.RESET}java -jar < path to .jar file > < input || -h || --help > < output > [ flags ]
+        ${Colors.BOLD}> Flags
+            ${Colors.RESET}--charset=value         ${Colors.BOLD} < value > is charset to input, output and map files.
+            ${Colors.RESET}--map=value             ${Colors.BOLD} < value > is path to your file.map.blya.
+            ${Colors.RESET}--stop-on-error         ${Colors.BOLD} Stop compiling on get error.
+            ${Colors.RESET}--ignore-default-map    ${Colors.BOLD} Ignore BidLua default map.
+        > BidLua Copyright (C) 2023 defaultzon3 (also known as DZONE)${Colors.RESET}
+            This program comes with ${Colors.BOLD}ABSOLUTELY NO WARRANTY;${Colors.RESET}
             This program is free software: you can redistribute it and/or modify
             it under the terms of the GNU General Public License as published by
             the Free Software Foundation, either version 3 of the License, or
             (at your option) any later version.
-        Source code: https://github.com/defaultzon3/BidLua/
+        ${Colors.BOLD}> Source code: ${Colors.UNDERLINE}https://github.com/defaultzon3/BidLua/
     """.trimIndent()
 
     if (args.isEmpty()) {
         println(helpContent)
     } else {
         val inputFileError : String = """
-            File in < input > doesn't exist. Input and output extension must be .blya or .lua.
-            Check again the path to the file, and if it still turned out to be correct:
-            Create issue on ${Data.REPOSITORY_URL}/issues. Input path: ${args[0]}; Output path: ${args[1]};
+            ${Colors.BOLD + Colors.RED}> ERROR
+              ${Colors.RESET + Colors.BOLD}File in < input > doesn't exist. Input and output extension must be .blya or .lua.
+              Check again the path to the file, and if it still turned out to be correct:
+              Create issue on ${Data.REPOSITORY_URL + Colors.UNDERLINE + Colors.CYAN}/issues.
+            ${Colors.RESET + Colors.BOLD}> INPUT PATH
+              ${args[0]}
+            > OUTPUT PATH 
+              ${args[1]}
         """.trimIndent()
 
         if (args[0] == "-h" || args[0] == "--help") {
             println(helpContent)
         } else {
+            println("${Colors.BOLD}> BidLua ${Colors.YELLOW}( ${Data.VERSION} )\n")
             if (Charset.availableCharsets()[flags["--charset"]] != null) {
                 val inputExtension : String = File(args[0]).extension
                 val outputExtension : String = File(args[1]).extension
@@ -93,7 +99,10 @@ fun main(args : Array<String>) {
                     println(inputFileError)
                 }
             } else {
-                println("Unknown charset: ${flags["--charset"]}")
+                println("""
+                    ${Colors.BOLD + Colors.RED}> ERROR
+                      ${Colors.RESET + Colors.BOLD}Unknown charset "${Colors.CYAN + flags["--charset"]}${Colors.RESET + Colors.BOLD}"
+                """.trimIndent())
             }
         }
     }

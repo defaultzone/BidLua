@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "me.dzone"
-version = "1.1.1"
+version = "1.2"
 
 repositories {
     mavenCentral()

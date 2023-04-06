@@ -54,9 +54,9 @@ function main()
                     elseif string.find(flag, "map=.*;") then
                         finalCommand = finalCommand .. "--map=" .. replacePathVariables(string.match(flag, ".*=(.*)"))
                     elseif flag == "stop-on-error" then
-                        finalCommand = finalCommand .. flag
+                        finalCommand = finalCommand .. "--" .. flag
                     elseif flag == "ignore-default-map" then
-                        finalCommand = finalCommand .. flag
+                        finalCommand = finalCommand .. "--" .. flag
                     end
                 end
 

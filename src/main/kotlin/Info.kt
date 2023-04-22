@@ -17,6 +17,6 @@
  */
 
 object Info {
-    const val VERSION : String = "1.1.1"
+    const val VERSION : String = "1.2"
     const val REPOSITORY_URL : String = "https://github.com/defaultzon3/BidLua"
 }

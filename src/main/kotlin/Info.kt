@@ -16,14 +16,7 @@
  * along with this program.  If not, see < https://www.gnu.org/licenses/ >.
  */
 
-object Data {
-    const val VERSION : String = "1.2"
+object Info {
+    const val VERSION : String = "1.1.1"
     const val REPOSITORY_URL : String = "https://github.com/defaultzon3/BidLua"
-    var compiling : Boolean = false
-    var flags : MutableMap<String, String> = mutableMapOf(
-        "--charset" to "UTF-8",
-        "--map" to "null",
-        "--stop-on-error" to "false",
-        "--ignore-default-map" to "false"
-    )
 }
